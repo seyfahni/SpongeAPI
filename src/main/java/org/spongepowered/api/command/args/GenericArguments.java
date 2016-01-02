@@ -71,7 +71,6 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-
 /**
  * Class containing factory methods for common command elements.
  */
@@ -90,7 +89,7 @@ public final class GenericArguments {
         return NONE;
     }
 
-    static CommandElement markTrue(String flag) {
+    static CommandElement.Value<Boolean> markTrue(String flag) {
         return new MarkTrueCommandElement(flag);
     }
 
@@ -103,7 +102,7 @@ public final class GenericArguments {
      * @param key The key to store under
      * @return the argument
      */
-    public static CommandElement playerOrSource(Text key) {
+    public static CommandElement.Value<Collection<? extends Player>> playerOrSource(Text key) {
         return new PlayerCommandElement(key, true);
     }
 
@@ -114,7 +113,7 @@ public final class GenericArguments {
      * @param key The key to store under
      * @return the argument
      */
-    public static CommandElement player(Text key) {
+    public static CommandElement.Value<Collection<? extends Player>> player(Text key) {
         return new PlayerCommandElement(key, false);
     }
 
@@ -124,7 +123,7 @@ public final class GenericArguments {
      * @param key The key to store under
      * @return the argument
      */
-    public static CommandElement user(Text key) {
+    public static CommandElement.Value<Collection<? extends User>> user(Text key) {
         return new UserCommandElement(key);
     }
 
@@ -136,31 +135,17 @@ public final class GenericArguments {
      * @param key The key to store under
      * @return the argument
      */
-    public static CommandElement world(Text key) {
+    public static CommandElement.Value<Collection<? extends WorldProperties>> world(Text key) {
         return new WorldPropertiesCommandElement(key);
     }
 
     /**
-<<<<<<< HEAD
-     * Expect an argument to represent a dimension.
-     * Gives values of tye {@link DimensionType}
-     *
-     * @param key The key to store under
-     * @return the argument
-     */
-    public static CommandElement dimension(Text key) {
-        return catalogedElement(key, DimensionType.class);
-    }
-
-    /**
-=======
->>>>>>> cd84596... Remove specific dimension arg factory method
      * Expect an argument to represent a {@link Vector3d}.
      *
      * @param key The key to store under
      * @return the argument
      */
-    public static CommandElement vector3d(Text key) {
+    public static CommandElement.Value<Vector3d> vector3d(Text key) {
         return new Vector3dCommandElement(key);
     }
 
@@ -170,7 +155,7 @@ public final class GenericArguments {
      * @param key The key to store under
      * @return the argument
      */
-    public static CommandElement location(Text key) {
+    public static CommandElement.Value<Location> location(Text key) {
         return new LocationCommandElement(key);
     }
 
@@ -182,17 +167,17 @@ public final class GenericArguments {
      * @param <T> The type to return
      * @return the argument
      */
-    public static <T extends CatalogType> CommandElement catalogedElement(Text key, Class<T> catalogType) {
+    public static <T extends CatalogType> CommandElement.Value<Collection<? extends T>> catalogedElement(Text key, Class<T> catalogType) {
         return new CatalogedTypeCommandElement<>(key, catalogType);
     }
 
-    static class MarkTrueCommandElement extends CommandElement {
+    static class MarkTrueCommandElement extends CommandElement.Value<Boolean> {
         public MarkTrueCommandElement(String flag) {
             super(Text.of(flag));
         }
 
         @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        protected Boolean parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
             return true;
         }
 
@@ -225,7 +210,6 @@ public final class GenericArguments {
         private final List<CommandElement> elements;
 
         private SequenceCommandElement(List<CommandElement> elements) {
-            super(null);
             this.elements = elements;
         }
 
@@ -234,11 +218,6 @@ public final class GenericArguments {
             for (CommandElement element : this.elements) {
                 element.parse(source, args, context);
             }
-        }
-
-        @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-            return null;
         }
 
         @Override
@@ -294,7 +273,7 @@ public final class GenericArguments {
      * @param choices The choices users can choose from
      * @return the element to match the input
      */
-    public static CommandElement choices(Text key, Map<String, ?> choices) {
+    public static <T> CommandElement.Value<T> choices(Text key, Map<String, T> choices) {
         return choices(key, choices, choices.size() <= 5);
     }
 
@@ -307,23 +286,23 @@ public final class GenericArguments {
      * @param choicesInUsage Whether to display the available choices, or simply the provided key, as part of usage
      * @return the element to match the input
      */
-    public static CommandElement choices(Text key, Map<String, ?> choices, boolean choicesInUsage) {
-        return new ChoicesCommandElement(key, ImmutableMap.copyOf(choices), choicesInUsage);
+    public static <T> CommandElement.Value<T> choices(Text key, Map<String, T> choices, boolean choicesInUsage) {
+        return new ChoicesCommandElement<>(key, ImmutableMap.copyOf(choices), choicesInUsage);
     }
 
-    private static class ChoicesCommandElement extends CommandElement {
-        private final Map<String, Object> choices;
+    private static class ChoicesCommandElement<T> extends CommandElement.Value<T> {
+        private final Map<String, T> choices;
         private final boolean choicesInUsage;
 
-        private ChoicesCommandElement(Text key, Map<String, Object> choices, boolean choicesInUsage) {
+        private ChoicesCommandElement(Text key, Map<String, T> choices, boolean choicesInUsage) {
             super(key);
             this.choices = choices;
             this.choicesInUsage = choicesInUsage;
         }
 
         @Override
-        public Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-            Object value = this.choices.get(args.next());
+        public T parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+            T value = this.choices.get(args.next());
             if (value == null) {
                 throw args.createError(t("Argument was not a valid choice. Valid choices: %s", this.choices.keySet().toString()));
             }
@@ -371,7 +350,6 @@ public final class GenericArguments {
         private final List<CommandElement> elements;
 
         private FirstParsingCommandElement(List<CommandElement> elements) {
-            super(null);
             this.elements = elements;
         }
 
@@ -394,23 +372,15 @@ public final class GenericArguments {
         }
 
         @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-            return null;
-        }
-
-        @Override
         public List<String> complete(final CommandSource src, final CommandArgs args, final CommandContext context) {
-            return ImmutableList.copyOf(Iterables.concat(Iterables.transform(this.elements,
-                    input -> {
-                        if (input == null) {
-                            return ImmutableList.of();
-                        }
-
+            return this.elements.stream()
+                    .flatMap(input -> {
                         Object startState = args.getState();
                         List<String> ret = input.complete(src, args, context);
                         args.setState(startState);
-                        return ret;
-                    })));
+                        return ret.stream();
+                    })
+                    .collect(GuavaCollectors.toImmutableList());
         }
 
         @Override
@@ -434,22 +404,8 @@ public final class GenericArguments {
      * @param element The element to optionally require
      * @return the element to match the input
      */
-    public static CommandElement optional(CommandElement element) {
-        return new OptionalCommandElement(element, null, false);
-    }
-
-    /**
-     * Make the provided command element optional
-     * This means the command element is not required. However, if the element is provided with invalid format and there
-     * are no more args specified, any errors will still be passed on. If the given element's key and {@code value} are not
-     * null and this element is not provided the element's key will be set to the given value.
-     *
-     * @param element The element to optionally require
-     * @param value The default value to set
-     * @return the element to match the input
-     */
-    public static CommandElement optional(CommandElement element, Object value) {
-        return new OptionalCommandElement(element, value, false);
+    public static <T> CommandElement.Value<Optional<T>> optional(CommandElement.Value<T> element) {
+        return new OptionalCommandElement<>(element, false);
     }
 
     /**
@@ -460,65 +416,36 @@ public final class GenericArguments {
      * @param element The element to optionally require
      * @return the element to match the input
      */
-    public static CommandElement optionalWeak(CommandElement element) {
-        return new OptionalCommandElement(element, null, true);
+    public static <T> CommandElement.Value<Optional<T>> optionalWeak(CommandElement.Value<T> element) {
+        return new OptionalCommandElement<>(element, true);
     }
 
-    /**
-     * Make the provided command element optional
-     * This means the command element is not required.
-     * If the argument is provided but of invalid format, it will be skipped.
-     * If the given element's key and {@code value} are not null and this element is not provided the element's key will
-     * be set to the given value.
-     *
-     * @param element The element to optionally require
-     * @param value The default value to set
-     * @return the element to match the input
-     */
-    public static CommandElement optionalWeak(CommandElement element, Object value) {
-        return new OptionalCommandElement(element, value, true);
-    }
-
-    private static class OptionalCommandElement extends CommandElement {
-        private final CommandElement element;
-        @Nullable
-        private final Object value;
+    private static class OptionalCommandElement<T> extends CommandElement.Value<Optional<T>> {
+        private final CommandElement.Value<T> element;
         private final boolean considerInvalidFormatEmpty;
 
-        private OptionalCommandElement(CommandElement element, @Nullable Object value, boolean considerInvalidFormatEmpty) {
-            super(null);
+        private OptionalCommandElement(CommandElement.Value<T> element, boolean considerInvalidFormatEmpty) {
+            super(element.getKey());
             this.element = element;
-            this.value = value;
             this.considerInvalidFormatEmpty = considerInvalidFormatEmpty;
         }
 
         @Override
-        public void parse(CommandSource source, CommandArgs args, CommandContext context) throws ArgumentParseException {
+        protected Optional<T> parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
             if (!args.hasNext()) {
-                Text key = this.element.getKey();
-                if (key != null && this.value != null) {
-                    context.putArg(key.toPlain(), this.value);
-                }
-                return;
+                return Optional.empty();
             }
             Object startState = args.getState();
             try {
-                this.element.parse(source, args, context);
+                return Optional.of(this.element.parseValue(source, args));
             } catch (ArgumentParseException ex) {
                 if (this.considerInvalidFormatEmpty || args.hasNext()) { // If there are more args, suppress. Otherwise, throw the error
                     args.setState(startState);
-                    if (this.element.getKey() != null && this.value != null) {
-                        context.putArg(this.element.getUntranslatedKey(), this.value);
-                    }
+                    return Optional.empty();
                 } else {
                     throw ex;
                 }
             }
-        }
-
-        @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-            return args.hasNext() ? null : this.element.parseValue(source, args);
         }
 
         @Override
@@ -550,7 +477,6 @@ public final class GenericArguments {
 
 
         protected RepeatedCommandElement(CommandElement element, int times) {
-            super(null);
             this.element = element;
             this.times = times;
         }
@@ -560,11 +486,6 @@ public final class GenericArguments {
             for (int i = 0; i < this.times; ++i) {
                 this.element.parse(source, args, context);
             }
-        }
-
-        @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-            return null;
         }
 
         @Override
@@ -603,7 +524,6 @@ public final class GenericArguments {
 
 
         protected AllOfCommandElement(CommandElement element) {
-            super(null);
             this.element = element;
         }
 
@@ -612,11 +532,6 @@ public final class GenericArguments {
             while (args.hasNext()) {
                 this.element.parse(source, args, context);
             }
-        }
-
-        @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-            return null;
         }
 
         @Override
@@ -642,38 +557,24 @@ public final class GenericArguments {
     // -- Argument types for basic java types
 
     /**
-     * Parent class that specifies elemenents as having no tab completions. Useful for inputs with a very large domain, like strings and integers
-     */
-    private abstract static class KeyElement extends CommandElement {
-        private KeyElement(Text key) {
-            super(key);
-        }
-
-        @Override
-        public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
-            return Collections.emptyList();
-        }
-    }
-
-    /**
      * Require an argument to be a string. Any provided argument will fit in under this argument.
      * Gives values of type {@link String}.
      *
      * @param key The key to store the parsed argument under
      * @return the element to match the input
      */
-    public static CommandElement string(Text key) {
+    public static CommandElement.Value<String> string(Text key) {
         return new StringElement(key);
     }
 
-    private static class StringElement extends KeyElement {
+    private static class StringElement extends CommandElement.Value<String> {
 
         private StringElement(Text key) {
             super(key);
         }
 
         @Override
-        public Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        public String parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
             return args.next();
         }
     }
@@ -686,11 +587,11 @@ public final class GenericArguments {
      * @param key The key to store the parsed argument under
      * @return the element to match the input
      */
-    public static CommandElement integer(Text key) {
+    public static CommandElement.Value<Integer> integer(Text key) {
         return new NumericElement<>(key, Integer::parseInt, Integer::parseInt, input -> t("Expected an integer, but input '%s' was not", input));
     }
 
-    private static class NumericElement<T extends Number> extends KeyElement {
+    private static class NumericElement<T extends Number> extends CommandElement.Value<T> {
         private final Function<String, T> parseFunc;
         @Nullable
         private final BiFunction<String, Integer, T> parseRadixFunction;
@@ -705,7 +606,7 @@ public final class GenericArguments {
         }
 
         @Override
-        public Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        public T parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
             final String input = args.next();
             try {
                 if (this.parseRadixFunction != null) {
@@ -729,7 +630,7 @@ public final class GenericArguments {
      * @param key The key to store the parsed argument under
      * @return the element to match the input
      */
-    public static CommandElement longNum(Text key) {
+    public static CommandElement.Value<Long> longNum(Text key) {
         return new NumericElement<>(key, Long::parseLong, Long::parseLong, input -> t("Expected a long, but input '%s' was not", input));
     }
 
@@ -740,7 +641,7 @@ public final class GenericArguments {
      * @param key The key to store the parsed argument under
      * @return the element to match the input
      */
-    public static CommandElement doubleNum(Text key) {
+    public static CommandElement.Value<Double> doubleNum(Text key) {
         return new NumericElement<>(key, Double::parseDouble, null, input -> t("Expected a number, but input '%s' was not", input));
     }
 
@@ -782,7 +683,7 @@ public final class GenericArguments {
      * @param key The key to store the parsed argument under
      * @return the element to match the input
      */
-    public static CommandElement bool(Text key) {
+    public static CommandElement.Value<Boolean> bool(Text key) {
         return GenericArguments.choices(key, BOOLEAN_CHOICES);
     }
 
@@ -795,11 +696,11 @@ public final class GenericArguments {
      * @param <T> The type of enum
      * @return the element to match the input
      */
-    public static <T extends Enum<T>> CommandElement enumValue(Text key, Class<T> type) {
+    public static <T extends Enum<T>> CommandElement.Value<Collection<? extends T>> enumValue(Text key, Class<T> type) {
         return new EnumValueElement<>(key, type);
     }
 
-    private static class EnumValueElement<T extends Enum<T>> extends PatternMatchingCommandElement {
+    private static class EnumValueElement<T extends Enum<T>> extends PatternMatchingCommandElement<T> {
         private final Class<T> type;
 
         private EnumValueElement(Text key, Class<T> type) {
@@ -815,7 +716,7 @@ public final class GenericArguments {
         }
 
         @Override
-        protected Object getValue(String choice) throws IllegalArgumentException {
+        protected T getValue(String choice) throws IllegalArgumentException {
             return Enum.valueOf(this.type, choice.toUpperCase());
         }
     }
@@ -827,11 +728,11 @@ public final class GenericArguments {
      * @param key The key to store the parsed argument under
      * @return the element to match the input
      */
-    public static CommandElement remainingJoinedStrings(Text key) {
+    public static CommandElement.Value<String> remainingJoinedStrings(Text key) {
         return new RemainingJoinedStringsCommandElement(key, false);
     }
 
-    private static class RemainingJoinedStringsCommandElement extends KeyElement {
+    private static class RemainingJoinedStringsCommandElement extends CommandElement.Value<String> {
         private final boolean raw;
 
         private RemainingJoinedStringsCommandElement(Text key, boolean raw) {
@@ -840,7 +741,7 @@ public final class GenericArguments {
         }
 
         @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        protected String parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
             if (this.raw) {
                 args.next();
                 String ret = args.getRaw().substring(args.getRawPosition());
@@ -871,8 +772,8 @@ public final class GenericArguments {
      * @param expectedArgs The sequence of arguments expected
      * @return the appropriate command element
      */
-    public static CommandElement literal(Text key, String... expectedArgs) {
-        return new LiteralCommandElement(key, ImmutableList.copyOf(expectedArgs), true);
+    public static CommandElement.Value<Boolean> literal(Text key, String... expectedArgs) {
+        return new LiteralCommandElement<>(key, ImmutableList.copyOf(expectedArgs), true);
     }
 
     /**
@@ -884,24 +785,22 @@ public final class GenericArguments {
      * @param expectedArgs The sequence of arguments expected
      * @return the appropriate command element
      */
-    public static CommandElement literal(Text key, @Nullable Object putValue, String... expectedArgs) {
-        return new LiteralCommandElement(key, ImmutableList.copyOf(expectedArgs), putValue);
+    public static <T> CommandElement.Value<T> literal(Text key, T putValue, String... expectedArgs) {
+        return new LiteralCommandElement<>(key, ImmutableList.copyOf(expectedArgs), putValue);
     }
 
-    private static class LiteralCommandElement extends CommandElement {
+    private static class LiteralCommandElement<T> extends CommandElement.Value<T> {
         private final List<String> expectedArgs;
-        @Nullable
-        private final Object putValue;
+        private final T putValue;
 
-        protected LiteralCommandElement(@Nullable Text key, List<String> expectedArgs, @Nullable Object putValue) {
+        protected LiteralCommandElement(Text key, List<String> expectedArgs, T putValue) {
             super(key);
             this.expectedArgs = ImmutableList.copyOf(expectedArgs);
             this.putValue = putValue;
         }
 
-        @Nullable
         @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        protected T parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
             for (String arg : this.expectedArgs) {
                 String current;
                 if (!(current = args.next()).equalsIgnoreCase(arg)) {
@@ -936,17 +835,16 @@ public final class GenericArguments {
         }
     }
 
-    private static class UserCommandElement extends PatternMatchingCommandElement {
+    private static class UserCommandElement extends PatternMatchingCommandElement<User> {
         private final PlayerCommandElement possiblePlayer;
 
-        protected UserCommandElement(@Nullable Text key) {
+        protected UserCommandElement(Text key) {
             super(key);
             this.possiblePlayer = new PlayerCommandElement(key, false);
         }
 
-        @Nullable
         @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        protected Collection<? extends User> parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
             Object state = args.getState();
             try {
                 return possiblePlayer.parseValue(source, args);
@@ -966,34 +864,33 @@ public final class GenericArguments {
         }
 
         @Override
-        protected Object getValue(String choice) throws IllegalArgumentException {
+        protected User getValue(String choice) throws IllegalArgumentException {
             return Sponge.getGame().getServiceManager().provideUnchecked(UserStorageService.class).get(choice).get();
         }
     }
 
-    private static class PlayerCommandElement extends SelectorCommandElement {
-
+    private static class PlayerCommandElement extends SelectorCommandElement<Player> {
         private final boolean returnSource;
 
         protected PlayerCommandElement(Text key, boolean returnSource) {
-            super(key);
+            super(key, Player.class);
             this.returnSource = returnSource;
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        protected Collection<? extends Player> parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
             if (!args.hasNext() && this.returnSource) {
-                return tryReturnSource(source, args);
+                return Collections.singleton(tryReturnSource(source, args));
             }
 
             Object state = args.getState();
             try {
-                return Iterables.filter((Iterable<Entity>)super.parseValue(source, args), e -> e instanceof Player);
+                return super.parseValue(source, args);
             } catch (ArgumentParseException ex) {
                 if (this.returnSource) {
                     args.setState(state);
-                    return tryReturnSource(source, args);
+                    return Collections.singleton(tryReturnSource(source, args));
                 } else {
                     throw ex;
                 }
@@ -1008,7 +905,7 @@ public final class GenericArguments {
         }
 
         @Override
-        protected Object getValue(String choice) throws IllegalArgumentException {
+        protected Player getValue(String choice) throws IllegalArgumentException {
             Optional<Player> ret = Sponge.getGame().getServer().getPlayer(choice);
             if (!ret.isPresent()) {
                 throw new IllegalArgumentException("Input value " + choice + " was not a player");
@@ -1042,28 +939,27 @@ public final class GenericArguments {
      *     <li>#me</li>
      * </ul>
      */
-    private static class WorldPropertiesCommandElement extends PatternMatchingCommandElement {
-        private final CommandElement dimensionTypeElement;
+    private static class WorldPropertiesCommandElement extends PatternMatchingCommandElement<WorldProperties> {
+        private final CommandElement.Value<? extends DimensionType> dimensionTypeElement;
 
-        protected WorldPropertiesCommandElement(@Nullable Text key) {
+        protected WorldPropertiesCommandElement(Text key) {
             super(key);
             this.dimensionTypeElement = onlyOne(catalogedElement(key, DimensionType.class));
         }
 
-        @Nullable
         @Override
-        public Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        public Collection<? extends WorldProperties> parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
             final String next = args.peek();
             if (next.startsWith("#")) {
                 String specifier = next.substring(1);
                 if (specifier.equalsIgnoreCase("first")) {
                     args.next();
-                    return Iterables.filter(Sponge.getGame().getServer().getAllWorldProperties(), input -> {
+                    return Collections.singleton(Iterables.filter(Sponge.getGame().getServer().getAllWorldProperties(), input -> {
                             return input != null && input.isEnabled();
-                    }).iterator().next();
+                    }).iterator().next());
                 } else if (specifier.equalsIgnoreCase("me") && source instanceof LocatedSource) {
                     args.next();
-                    return ((LocatedSource) source).getWorld().getProperties();
+                    return Collections.singleton(((LocatedSource) source).getWorld().getProperties());
                 } else {
                     boolean firstOnly = false;
                     if (specifier.endsWith(":first")) {
@@ -1072,11 +968,11 @@ public final class GenericArguments {
                     }
                     args.next();
                     args.insertArg(specifier);
-                    final DimensionType type = (DimensionType) this.dimensionTypeElement.parseValue(source, args);
+                    final DimensionType type = this.dimensionTypeElement.parseValue(source, args);
                     Iterable<WorldProperties> ret = Iterables.filter(Sponge.getGame().getServer().getAllWorldProperties(), input -> {
                             return input != null && input.isEnabled() && input.getDimensionType().equals(type);
                     });
-                    return firstOnly ? ret.iterator().next() : ret;
+                    return firstOnly ? Collections.singleton(ret.iterator().next()) : ImmutableList.copyOf(ret);
                 }
             }
 
@@ -1093,7 +989,7 @@ public final class GenericArguments {
         }
 
         @Override
-        protected Object getValue(String choice) throws IllegalArgumentException {
+        protected WorldProperties getValue(String choice) throws IllegalArgumentException {
             Optional<WorldProperties> ret = Sponge.getGame().getServer().getWorldProperties(choice);
             if (!ret.isPresent()) {
                 throw new IllegalArgumentException("Provided argument " + choice + " did not match a WorldProperties");
@@ -1109,15 +1005,15 @@ public final class GenericArguments {
      * each element can be relative to a location? so parseRelativeDouble() -- relative is ~(num)
      *
      */
-    private static class Vector3dCommandElement extends CommandElement {
+    private static class Vector3dCommandElement extends CommandElement.Value<Vector3d> {
         private static final ImmutableSet<String> SPECIAL_TOKENS = ImmutableSet.of("#target", "#me");
 
-        protected Vector3dCommandElement(@Nullable Text key) {
+        protected Vector3dCommandElement(Text key) {
             super(key);
         }
 
         @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        protected Vector3d parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
             String xStr;
             String yStr;
             String zStr;
@@ -1198,7 +1094,7 @@ public final class GenericArguments {
      *     <li>#me: Location of the current source</li>
      * </ul>
      */
-    private static class LocationCommandElement extends CommandElement {
+    private static class LocationCommandElement extends CommandElement.Value<Location> {
         private final WorldPropertiesCommandElement worldParser;
         private final Vector3dCommandElement vectorParser;
 
@@ -1209,7 +1105,7 @@ public final class GenericArguments {
         }
 
         @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        protected Location parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
             Object state = args.getState();
             if (args.peek().startsWith("@")) { // We are a selector
                 return Selector.parse(args.next()).resolve(source).stream()
@@ -1269,7 +1165,7 @@ public final class GenericArguments {
         }
     }
 
-    private static class CatalogedTypeCommandElement<T extends CatalogType> extends PatternMatchingCommandElement {
+    private static class CatalogedTypeCommandElement<T extends CatalogType> extends PatternMatchingCommandElement<T> {
         private final Class<T> catalogType;
 
         protected CatalogedTypeCommandElement(Text key, Class<T> catalogType) {
@@ -1281,13 +1177,13 @@ public final class GenericArguments {
         protected Iterable<String> getChoices(CommandSource source) {
             return Sponge.getGame().getRegistry().getAllOf(this.catalogType).stream()
                 .<String>map(input -> {
-                return input == null ? null : input.getId(); // TODO: ids or names?
+                    return input == null ? null : input.getId(); // TODO: ids or names?
                 })
                 .collect(Collectors.toList());
         }
 
         @Override
-        protected Object getValue(String choice) throws IllegalArgumentException {
+        protected T getValue(String choice) throws IllegalArgumentException {
             final Optional<T> ret = Sponge.getGame().getRegistry().getType(this.catalogType, choice);
             if (!ret.isPresent()) {
                 throw new IllegalArgumentException("Invalid input " + choice + " was found");
@@ -1302,36 +1198,43 @@ public final class GenericArguments {
      * @param element The element to restrict
      * @return the restricted element
      */
-    public static CommandElement onlyOne(CommandElement element) {
-        return new OnlyOneCommandElement(element);
+    public static <T> CommandElement.Value<T> onlyOne(CommandElement.Value<? extends Collection<? extends T>> element) {
+        return new OnlyOneCommandElement<>(element);
     }
 
-    private static class OnlyOneCommandElement extends CommandElement {
-        private final CommandElement element;
+    private static class OnlyOneCommandElement<T> extends CommandElement.Value<T> {
+        private final CommandElement.Value<? extends Iterable<? extends T>> element;
 
-        protected OnlyOneCommandElement(CommandElement element) {
+        protected OnlyOneCommandElement(CommandElement.Value<? extends Collection<? extends T>> element) {
             super(element.getKey());
             this.element = element;
         }
 
-        @Override
+        /*@Override
         public void parse(CommandSource source, CommandArgs args, CommandContext context) throws ArgumentParseException {
             this.element.parse(source, args, context);
-            if (context.getAll(this.element.getUntranslatedKey()).size() > 1) {
-                Text key = this.element.getKey();
-                throw args.createError(t("Argument %s may have only one value!", key != null ? key : t("unknown")));
+            if (context.get(this.element).size() > 1) {
+                throw args.createError(t("Argument %s may have only one value!",  this.element.getKey()));
             }
-        }
+        }*/
 
         @Override
         public Text getUsage(CommandSource src) {
             return this.element.getUsage(src);
         }
 
-        @Nullable
         @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-            return this.element.parseValue(source, args);
+        protected T parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+            Iterable<? extends T> iterable = this.element.parseValue(source, args);
+            Iterator<? extends T> iter = iterable.iterator();
+            if (!iter.hasNext()) {
+                throw args.createError(t("Argument %s may have only one value!",  this.element.getKey()));
+            }
+            T ret = iter.next();
+            if (iter.hasNext()) {
+                throw args.createError(t("Argument %s may have only one value!", this.element.getKey()));
+            }
+            return ret;
         }
 
         @Override
@@ -1356,22 +1259,18 @@ public final class GenericArguments {
         private final String permission;
 
         protected PermissionCommandElement(CommandElement element, String permission) {
-            super(element.getKey());
             this.element = element;
             this.permission = permission;
         }
 
-        @Nullable
-        @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
-            checkPermission(source, args);
-            return this.element.parseValue(source, args);
-        }
-
         private void checkPermission(CommandSource source, CommandArgs args) throws ArgumentParseException {
             if (!source.hasPermission(this.permission)) {
-                Text key = getKey();
-                throw args.createError(t("You do not have permission to use the %s argument", key != null ? key : t("unknown")));
+                if (element instanceof CommandElement.Value<?>) {
+                    throw args.createError(t("You do not have permission to use the %s argument", ((Value<?>) element).getKey()));
+                } else {
+                    throw args.createError(t("You do not have permission to use this argument"));
+
+                }
             }
         }
 
@@ -1395,27 +1294,27 @@ public final class GenericArguments {
         }
     }
 
-    public static CommandElement entity(Text key) {
+    public static CommandElement.Value<Collection<? extends Entity>> entity(Text key) {
         return new EntityCommandElement(key, false);
     }
 
-    public static CommandElement entityOrSource(Text key) {
+    public static CommandElement.Value<Collection<? extends Entity>> entityOrSource(Text key) {
         return new EntityCommandElement(key, true);
     }
 
-    private static class EntityCommandElement extends SelectorCommandElement {
+    private static class EntityCommandElement extends SelectorCommandElement<Entity> {
 
         private final boolean returnSource;
 
         protected EntityCommandElement(Text key, boolean returnSource) {
-            super(key);
+            super(key, Entity.class);
             this.returnSource = returnSource;
         }
 
         @Override
-        protected Object parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
+        protected Collection<? extends Entity> parseValue(CommandSource source, CommandArgs args) throws ArgumentParseException {
             if (!args.hasNext() && this.returnSource) {
-                return tryReturnSource(source, args);
+                return Collections.singleton(tryReturnSource(source, args));
             }
 
             Object state = args.getState();
@@ -1424,7 +1323,7 @@ public final class GenericArguments {
             } catch (ArgumentParseException ex) {
                 if (this.returnSource) {
                     args.setState(state);
-                    return tryReturnSource(source, args);
+                    return Collections.singleton(tryReturnSource(source, args));
                 } else {
                     throw ex;
                 }
@@ -1433,23 +1332,19 @@ public final class GenericArguments {
 
         @Override
         protected Iterable<String> getChoices(CommandSource source) {
-            Set<Iterable<Entity>> worldEntities = new HashSet<Iterable<Entity>>();
-            for (World world : Sponge.getServer().getWorlds()) {
-                worldEntities.add(world.getEntities());
-            }
-            return Iterables.transform(Iterables.concat(worldEntities), input -> {
-                if (input == null) {
-                    return null;
-                }
-                if (input instanceof Player) {
-                    return ((Player)input).getName();
-                }
-                return input.getUniqueId().toString();
-            });
+            return Sponge.getServer().getWorlds().stream()
+                    .flatMap(w -> w.getEntities().stream())
+                    .map(input -> {
+                        if (input instanceof Player) {
+                            return ((Player) input).getName();
+                        }
+                        return input.getUniqueId().toString();
+                    })
+                    .collect(GuavaCollectors.toImmutableSet());
         }
 
         @Override
-        protected Object getValue(String choice) throws IllegalArgumentException {
+        protected Entity getValue(String choice) throws IllegalArgumentException {
             UUID uuid = UUID.fromString(choice);
             for (World world : Sponge.getServer().getWorlds()) {
                 Optional<Entity> ret = world.getEntity(uuid);
