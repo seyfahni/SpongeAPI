@@ -58,16 +58,15 @@ import org.spongepowered.api.world.storage.WorldProperties;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -125,6 +124,10 @@ public final class GenericArguments {
      */
     public static CommandElement.Value<Collection<? extends User>> user(Text key) {
         return new UserCommandElement(key);
+    }
+
+    public static CommandElement.Value<Collection<? extends CompletableFuture<GameProfile>>> gameProfile(Text key) {
+        return new GameProfileCommandElement(key);
     }
 
     /**
@@ -221,7 +224,7 @@ public final class GenericArguments {
         }
 
         @Override
-        public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
+        public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) throws ArgumentParseException {
             for (Iterator<CommandElement> it = this.elements.iterator(); it.hasNext(); ) {
                 CommandElement element = it.next();
                 Object startState = args.getState();
@@ -449,8 +452,13 @@ public final class GenericArguments {
         }
 
         @Override
-        public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
+        public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) throws ArgumentParseException {
             return this.element.complete(src, args, context);
+        }
+
+        @Override
+        protected Optional<T> getFallback() {
+            return Optional.empty();
         }
 
         @Override
@@ -535,7 +543,7 @@ public final class GenericArguments {
         }
 
         @Override
-        public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
+        public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) throws ArgumentParseException {
             while (args.hasNext()) {
                 Object startState = args.getState();
                 try {
@@ -866,6 +874,33 @@ public final class GenericArguments {
         @Override
         protected User getValue(String choice) throws IllegalArgumentException {
             return Sponge.getGame().getServiceManager().provideUnchecked(UserStorageService.class).get(choice).get();
+        }
+    }
+
+    private static class GameProfileCommandElement extends PatternMatchingCommandElement<CompletableFuture<GameProfile>> {
+
+        protected GameProfileCommandElement(Text key) {
+            super(key);
+        }
+
+        @Override
+        protected Iterable<String> getChoices(CommandSource source) {
+            return Sponge.getGame().getServer().getGameProfileManager().getCachedProfiles().stream()
+                    .map(GameProfile::getName)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(GuavaCollectors.toImmutableList());
+
+        }
+
+        @Override
+        protected CompletableFuture<GameProfile> getValue(String choice) throws IllegalArgumentException {
+            try {
+                UUID profileId = UUID.fromString(choice);
+                return Sponge.getGame().getServer().getGameProfileManager().get(profileId);
+            } catch (IllegalArgumentException e) {
+                return Sponge.getGame().getServer().getGameProfileManager().get(choice);
+            }
         }
     }
 
@@ -1275,7 +1310,7 @@ public final class GenericArguments {
         }
 
         @Override
-        public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) {
+        public List<String> complete(CommandSource src, CommandArgs args, CommandContext context) throws ArgumentParseException {
             if (!src.hasPermission(this.permission)) {
                 return ImmutableList.of();
             }
