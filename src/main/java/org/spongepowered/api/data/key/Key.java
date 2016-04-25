@@ -24,6 +24,7 @@
  */
 package org.spongepowered.api.data.key;
 
+import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataSerializable;
@@ -39,7 +40,7 @@ import org.spongepowered.api.data.value.mutable.Value;
  *
  * @param <V> The type of {@link BaseValue}
  */
-public interface Key<V extends BaseValue<?>> {
+public interface Key<V extends BaseValue<?>> extends CatalogType {
 
     /**
      * Gets the class of the {@link Value} this {@link Key} is representing.
@@ -47,6 +48,14 @@ public interface Key<V extends BaseValue<?>> {
      * @return The value class
      */
     Class<V> getValueClass();
+
+    /**
+     * Gets the class of the element of the {@link Value} this {@link Key}
+     * is representing.
+     *
+     * @return The element class
+     */
+    Class<?> getElementClass();
 
     /**
      * Gets the {@link DataQuery} for recommended use with

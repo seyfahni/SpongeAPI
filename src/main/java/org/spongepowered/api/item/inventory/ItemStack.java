@@ -38,10 +38,14 @@ import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.manipulator.DataManipulator;
 import org.spongepowered.api.data.manipulator.ImmutableDataManipulator;
+import org.spongepowered.api.data.persistence.DataBuilder;
 import org.spongepowered.api.data.value.BaseValue;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.text.translation.Translatable;
 import org.spongepowered.api.util.ResettableBuilder;
+
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Represents a stack of a specific {@link ItemType}. Supports serialization and
@@ -121,7 +125,7 @@ public interface ItemStack extends DataHolder, DataSerializable, Translatable {
     @Override
     ItemStack copy();
     
-    interface Builder extends ResettableBuilder<ItemStack, Builder> {
+    interface Builder extends DataBuilder<ItemStack> {
         
         /**
          * Sets the {@link ItemType} of the item stack.
@@ -130,6 +134,8 @@ public interface ItemStack extends DataHolder, DataSerializable, Translatable {
          * @return This builder, for chaining
          */
         Builder itemType(ItemType itemType);
+
+        ItemType getCurrentItem();
 
         /**
          * Sets the quantity of the item stack.
@@ -238,6 +244,16 @@ public interface ItemStack extends DataHolder, DataSerializable, Translatable {
          * @return This builder, for chaining
          */
         Builder fromBlockSnapshot(BlockSnapshot blockSnapshot);
+
+        Builder remove(Class<? extends DataManipulator<?, ?>> manipulatorClass);
+
+        default Builder apply(Predicate<Builder> predicate, Consumer<Builder> consumer) {
+            if (predicate.test(this)) {
+                consumer.accept(this);
+            }
+            return this;
+        }
+
 
         /**
          * Builds an instance of an ItemStack.

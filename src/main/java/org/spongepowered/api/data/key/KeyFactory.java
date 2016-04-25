@@ -25,6 +25,7 @@
 package org.spongepowered.api.data.key;
 
 import com.google.common.base.Objects;
+import com.google.common.reflect.TypeToken;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.value.BaseValue;
@@ -34,8 +35,10 @@ import org.spongepowered.api.data.value.mutable.OptionalValue;
 import org.spongepowered.api.data.value.mutable.SetValue;
 import org.spongepowered.api.data.value.mutable.Value;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * A factory of {@link Key}s, useful for both the implementation of SpongeAPI,
@@ -65,8 +68,18 @@ public final class KeyFactory {
      * @return The generated key
      */
     public static <E, T extends BaseValue, V extends BaseValue<E>> Key<V> makeSingleKey(final Class<E> elementClass, final Class<T> valueClass,
-            final DataQuery query) {
+            final DataQuery query, final String id, final String name) {
         return new Key<V>() {
+
+            @Override
+            public String getId() {
+                return id;
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
 
             private final int hash = Objects.hashCode(elementClass, valueClass, query);
 
@@ -74,6 +87,11 @@ public final class KeyFactory {
             @Override
             public Class<V> getValueClass() {
                 return (Class<V>) (Class) valueClass;
+            }
+
+            @Override
+            public Class<?> getElementClass() {
+                return elementClass;
             }
 
             @Override
@@ -102,14 +120,30 @@ public final class KeyFactory {
      * @param <E> The type of element
      * @return The generated key
      */
-    public static <E> Key<ListValue<E>> makeListKey(final Class<E> elementClass, final DataQuery query) {
+    public static <E> Key<ListValue<E>> makeListKey(final Class<E> elementClass, final DataQuery query, final String id, final String name) {
         return new Key<ListValue<E>>() {
+
+            @Override
+            public String getId() {
+                return id;
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
             private final int hash = Objects.hashCode(ListValue.class, elementClass, query);
 
             @SuppressWarnings("rawtypes")
             @Override
             public Class<ListValue<E>> getValueClass() {
                 return (Class<ListValue<E>>) (Class) ListValue.class;
+            }
+
+            @Override
+            public Class<?> getElementClass() {
+                return List.class;
             }
 
             @Override
@@ -138,14 +172,29 @@ public final class KeyFactory {
      * @param <E> The type of element
      * @return The generated key
      */
-    public static <E> Key<SetValue<E>> makeSetKey(final Class<E> elementClass, final DataQuery query) {
+    public static <E> Key<SetValue<E>> makeSetKey(final Class<E> elementClass, final DataQuery query, final String id, final String name) {
         return new Key<SetValue<E>>() {
+            @Override
+            public String getId() {
+                return id;
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
             private final int hash = Objects.hashCode(ListValue.class, elementClass, query);
 
             @SuppressWarnings("rawtypes")
             @Override
             public Class<SetValue<E>> getValueClass() {
                 return (Class<SetValue<E>>) (Class) SetValue.class;
+            }
+
+            @Override
+            public Class<?> getElementClass() {
+                return Set.class;
             }
 
             @Override
@@ -177,8 +226,18 @@ public final class KeyFactory {
      * @param <V> The type of values
      * @return The generated key
      */
-    public static <K, V> Key<MapValue<K, V>> makeMapKey(final Class<K> keyClass, final Class<V> valueclass, final DataQuery query) {
+    public static <K, V> Key<MapValue<K, V>> makeMapKey(final Class<K> keyClass, final Class<V> valueclass, final DataQuery query, final String id, final String name) {
         return new Key<MapValue<K, V>>() {
+
+            @Override
+            public String getId() {
+                return id;
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
 
             private final int hash = Objects.hashCode(keyClass, valueclass, query);
 
@@ -186,6 +245,12 @@ public final class KeyFactory {
             @Override
             public Class<MapValue<K, V>> getValueClass() {
                 return (Class<MapValue<K, V>>) (Class) MapValue.class;
+            }
+
+            @SuppressWarnings("rawtypes")
+            @Override
+            public Class<?> getElementClass() {
+                return Map.class;
             }
 
             @Override
@@ -216,14 +281,29 @@ public final class KeyFactory {
      * @param <E> The element type
      * @return The generated key
      */
-    public static <E> Key<OptionalValue<E>> makeOptionalKey(final Class<E> elementClass, final DataQuery query) {
+    public static <E> Key<OptionalValue<E>> makeOptionalKey(final Class<E> elementClass, final DataQuery query, final String id, final String name) {
         return new Key<OptionalValue<E>>() {
+
+            @Override
+            public String getId() {
+                return id;
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
 
             private final int hash = Objects.hashCode(Optional.class, elementClass, query);
 
             @Override
             public Class<OptionalValue<E>> getValueClass() {
                 return (Class<OptionalValue<E>>) (Class<?>) OptionalValue.class;
+            }
+
+            @Override
+            public Class<?> getElementClass() {
+                return elementClass;
             }
 
             @Override
@@ -246,7 +326,22 @@ public final class KeyFactory {
     static <E, V extends BaseValue<E>> Key<V> fake(final String keyName) {
         return new Key<V>() {
             @Override
+            public String getId() {
+                throw new UnsupportedOperationException("Key " + keyName + " is not implemented");
+            }
+
+            @Override
+            public String getName() {
+                throw new UnsupportedOperationException("Key " + keyName + " is not implemented");
+            }
+
+            @Override
             public Class<V> getValueClass() {
+                throw new UnsupportedOperationException("Key " + keyName + " is not implemented");
+            }
+
+            @Override
+            public Class<?> getElementClass() {
                 throw new UnsupportedOperationException("Key " + keyName + " is not implemented");
             }
 
