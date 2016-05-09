@@ -1,5 +1,6 @@
 package org.spongepowered.api.data.manipulator.generator.testing;
 
+import com.google.common.collect.ImmutableList;
 import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.key.KeyFactory;
@@ -8,14 +9,16 @@ import org.spongepowered.api.data.manipulator.DataManipulatorBuilder;
 import org.spongepowered.api.data.manipulator.ImmutableDataManipulator;
 import org.spongepowered.api.data.manipulator.generator.CustomDataProvider;
 import org.spongepowered.api.data.manipulator.generator.DataRegistration;
-import org.spongepowered.api.data.persistence.DataBuilder;
-import org.spongepowered.api.data.value.BaseValue;
+import org.spongepowered.api.data.value.mutable.ListValue;
 import org.spongepowered.api.data.value.mutable.Value;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 public class SimpleStringCustomData {
 
     // For obvious reasons, we want to be able to use the key for various things. so we generate it!
     public static final Key<Value<String>> MY_STRING = KeyFactory.makeSingleKey(String.class, Value.class, DataQuery.of("MyString"), "com.gabizou.my_string", "MyStringKey");
+
+    public static final Key<ListValue<ItemStack>> MY_STACKS = KeyFactory.makeListKey(ItemStack.class, DataQuery.of("MyItemStacks"), "com.gabizou.my_stacks", "MyStacks");
 
     // We get to use the CustomDataProvider, however, since there are no hard interfaces provided,
     // we can't use any form of generics. Fortunately for us, we don't really care about generics,
@@ -27,8 +30,9 @@ public class SimpleStringCustomData {
     // No further registration is required
     private static final DataRegistration<?, ?> MY_STRING_REGISTRATION = CustomDataProvider.builder()
             .id("CustomStringData")
-            //.withInt(MY_STRING, 54) // Will not compile due to method requirements :D
-            .withString(MY_STRING, "DefaultString")
+            //.intValue(MY_STRING, 54) // Will not compile due to method requirements :D
+            .stringValue(MY_STRING, "DefaultString")
+            .list(MY_STACKS, ImmutableList.of(), ItemStack.class)
             .build(null); // Not actually supposed to be null, but it can be for the sake of demonstration
 
     // We now have our generated "super class" which can be used in any methods accepting manipulator classes

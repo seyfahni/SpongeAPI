@@ -11,11 +11,13 @@ import org.spongepowered.api.data.manipulator.ImmutableDataManipulator;
 import org.spongepowered.api.data.value.BaseValue;
 import org.spongepowered.api.data.value.BoundedValue;
 import org.spongepowered.api.data.value.mutable.ListValue;
+import org.spongepowered.api.data.value.mutable.MapValue;
 import org.spongepowered.api.data.value.mutable.SetValue;
 import org.spongepowered.api.util.ResettableBuilder;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -32,42 +34,44 @@ public class CustomDataProvider {
 
     public interface RawBuilder extends ResettableBuilder<DataRegistration<?, ?>, RawBuilder> {
 
-        RawBuilder withString(Key<? extends BaseValue<String>> key, String defaultValue);
+        RawBuilder stringValue(Key<? extends BaseValue<String>> key, String defaultValue);
 
-        RawBuilder withBoolean(Key<? extends BaseValue<Boolean>> key, boolean defaultValue);
+        RawBuilder booleanValue(Key<? extends BaseValue<Boolean>> key, boolean defaultValue);
 
-        RawBuilder withInt(Key<? extends BaseValue<Integer>> key, int defaultValue);
+        RawBuilder intValue(Key<? extends BaseValue<Integer>> key, int defaultValue);
 
-        RawBuilder withBoundedInt(Key<? extends BoundedValue<Integer>> key, int defaultValue, int minimum, int max);
+        RawBuilder boundedInt(Key<? extends BoundedValue<Integer>> key, int defaultValue, int minimum, int max);
 
-        RawBuilder withLong(Key<? extends BaseValue<Long>> key, long defaultValue);
+        RawBuilder longValue(Key<? extends BaseValue<Long>> key, long defaultValue);
 
-        RawBuilder withBoundedLong(Key<? extends BoundedValue<Long>> key, long defaultValue, long minimum, long maximum);
+        RawBuilder boundedLong(Key<? extends BoundedValue<Long>> key, long defaultValue, long minimum, long maximum);
 
-        RawBuilder withFloat(Key<? extends BaseValue<Float>> key, float defaultValue);
+        RawBuilder floatValue(Key<? extends BaseValue<Float>> key, float defaultValue);
 
-        RawBuilder withBoundedFloat(Key<? extends BoundedValue<Float>> key, float defaultValue, float minimum, float maximum);
+        RawBuilder boundedFloat(Key<? extends BoundedValue<Float>> key, float defaultValue, float minimum, float maximum);
 
-        RawBuilder withDouble(Key<? extends BaseValue<Double>> key, double defaultValue);
+        RawBuilder doubleValue(Key<? extends BaseValue<Double>> key, double defaultValue);
 
-        RawBuilder withBoundedDouble(Key<? extends BoundedValue<Double>> key, double defaultValue, double minimum, double maximum);
+        RawBuilder boundedDouble(Key<? extends BoundedValue<Double>> key, double defaultValue, double minimum, double maximum);
 
-        <T extends Comparable<T>> RawBuilder withBounded(Key<? extends BoundedValue<T>> key, T defaultValue, T minimum, T maximum);
+        <T extends Comparable<T>> RawBuilder bounded(Key<? extends BoundedValue<T>> key, T defaultValue, T minimum, T maximum);
 
-        <T extends DataSerializable> RawBuilder withSerializable(Key<? extends BaseValue<? extends T>> key, T serializable);
+        <T extends DataSerializable> RawBuilder serializable(Key<? extends BaseValue<? extends T>> key, T serializable);
 
-        <E> RawBuilder list(Key<? extends ListValue<E>> key, List<E> defaultValue);
+        <E> RawBuilder list(Key<? extends ListValue<E>> key, List<E> defaultValue, Class<E> objectClass) throws IllegalArgumentException;
 
-        <E> RawBuilder set(Key<? extends SetValue<E>> key, Set<E> defaultValue);
+        <E> RawBuilder set(Key<? extends SetValue<E>> key, Set<E> defaultValue, Class<E> objectClass) throws IllegalArgumentException;
 
-        <T> RawBuilder withObject(Key<? extends BaseValue<T>> key, T object);
+        <T> RawBuilder object(Key<? extends BaseValue<T>> key, T object) throws IllegalArgumentException;
+
+        <K, V> RawBuilder map(Key<? extends MapValue<K, V>> key, Map<K, V> defaultValue, Class<K> keyClass, Class<V> valueClass) throws IllegalArgumentException;
 
         /**
          * Defines a {@link Predicate} to use
          * @param predicate
          * @return
          */
-        RawBuilder predicate(Predicate<DataHolder> predicate);
+        RawBuilder predicate(Predicate<? extends DataHolder> predicate);
 
         DataRegistration<?, ?> build(Object pluginInstance);
 
@@ -75,6 +79,8 @@ public class CustomDataProvider {
     }
 
     public interface TypeBuilder<T extends DataManipulator<T, I>, I extends ImmutableDataManipulator<I, T>> {
+
+        TypeBuilder<T, I> predicate(Predicate<? extends DataHolder> predicate);
 
         DataRegistration<T, I> build(Object pluginInstance);
     }
