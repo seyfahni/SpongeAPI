@@ -80,7 +80,11 @@ public class CustomDataProvider {
 
     public interface TypeBuilder<T extends DataManipulator<T, I>, I extends ImmutableDataManipulator<I, T>> {
 
+        TypeBuilder<T, I> key(Key<?> key, String id);
+
         TypeBuilder<T, I> predicate(Predicate<? extends DataHolder> predicate);
+
+        TypeBuilder<T, I> id(String s);
 
         DataRegistration<T, I> build(Object pluginInstance);
     }
