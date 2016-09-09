@@ -109,4 +109,12 @@ public interface BiomeGenerationSettings {
      */
     <T extends Populator> List<T> getPopulators(Class<T> type);
 
+    /**
+     * Returns a new biome generation settings which is a copy of this set of
+     * generation settings at this point in time.
+     * 
+     * @return The copy of these settings
+     */
+    BiomeGenerationSettings copy();
+
 }
