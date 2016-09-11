@@ -111,4 +111,10 @@ public class InventoryArchetypes {
      * Cannot be opened by the server in Vanilla.
      */
     public static final InventoryArchetype PLAYER = DummyObjectProvider.createFor(InventoryArchetype.class, "PLAYER");
+
+    /**
+     * Represents an unknown inventory. This archetype can never be used by plugins to construct an inventory.
+     * Instead, it represents inventories (such as certain mod-added inventories) for which Sponge knows nothing about.
+     */
+    public static final InventoryArchetype UNKNOWN = DummyObjectProvider.createFor(InventoryArchetype.class, "UNKNOWN");
 }

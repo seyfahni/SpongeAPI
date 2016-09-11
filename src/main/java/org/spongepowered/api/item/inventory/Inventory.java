@@ -468,6 +468,8 @@ public interface Inventory extends Iterable<Inventory>, Nameable {
      */
     PluginContainer getPlugin();
 
+    InventoryArchetype getArchetype();
+
     /**
      * A Builder for Inventories based on {@link InventoryArchetype}s
      */

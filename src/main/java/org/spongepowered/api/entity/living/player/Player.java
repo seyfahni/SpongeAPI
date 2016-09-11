@@ -98,8 +98,9 @@ public interface Player extends Humanoid, User, Locatable, RemoteSource, Viewer,
      *
      * @param cause The {@link Cause} to provide when closing the inventory
      * @throws IllegalArgumentException if a {@link PluginContainer} is not the root of the cause
+     * @return whether or not closing the inventory succeeded
      */
-    void closeInventory(Cause cause) throws IllegalArgumentException;
+    boolean closeInventory(Cause cause) throws IllegalArgumentException;
 
     /**
      * Gets the view distance setting of the player. This value represents the
@@ -217,7 +218,7 @@ public interface Player extends Humanoid, User, Locatable, RemoteSource, Viewer,
     /**
      * Gets if the {@link Player} has played on the {@link Server} before. Added
      * as a utility.
-     * 
+     *
      * @return True if played before, false otherwise
      */
     default boolean hasPlayedBefore() {
