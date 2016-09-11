@@ -29,6 +29,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.transaction.InventoryTransactionResult;
+import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.translation.Translation;
 import org.spongepowered.api.util.ResettableBuilder;
 
@@ -461,6 +462,13 @@ public interface Inventory extends Iterable<Inventory>, Nameable {
     <T extends Inventory> T query(Object... args);
 
     /**
+     * Returns the {@link PluginContainer} who built this inventory.
+     *
+     * @return The container
+     */
+    PluginContainer getPlugin();
+
+    /**
      * A Builder for Inventories based on {@link InventoryArchetype}s
      */
     interface Builder extends ResettableBuilder<Inventory, Builder> {
@@ -517,12 +525,12 @@ public interface Inventory extends Iterable<Inventory>, Nameable {
         Builder forCarrier(Class<? extends Carrier> carrier);
 
         /**
-         * TODO maybe require plugin instance?
          * Builds the {@link Inventory}.
          *
+         * @param plugin The plugin building this inventory
          * @return The new Inventory instance
          */
-        Inventory build();
+        Inventory build(Object plugin);
 
     }
 }
