@@ -88,6 +88,7 @@ public interface Player extends Humanoid, User, Locatable, RemoteSource, Viewer,
      * @param inventory The inventory to view
      * @param cause The {@link Cause} to use when opening the inventory
      * @throws IllegalArgumentException if a {@link PluginContainer} is not the root of the cause
+     * @return The opened Container if the inventory was opened, otherwise {@link Optional#empty()}
      */
     Optional<Container> openInventory(Inventory inventory, Cause cause) throws IllegalArgumentException;
 
