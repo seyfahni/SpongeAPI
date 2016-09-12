@@ -27,6 +27,8 @@ package org.spongepowered.api.item.inventory.property;
 import org.spongepowered.api.data.Property;
 import org.spongepowered.api.item.inventory.InventoryProperty;
 
+import java.util.Locale;
+
 import javax.annotation.Nullable;
 
 /**
@@ -111,7 +113,7 @@ public abstract class AbstractInventoryProperty<K, V> implements InventoryProper
      */
     @SuppressWarnings("unchecked")
     protected K getDefaultKey(@Nullable V value) {
-        return (K) this.getClass().getSimpleName();
+        return (K) this.getClass().getSimpleName().toLowerCase(Locale.ENGLISH);
     }
 
     /**
