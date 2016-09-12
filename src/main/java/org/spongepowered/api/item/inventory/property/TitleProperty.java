@@ -25,15 +25,12 @@
 package org.spongepowered.api.item.inventory.property;
 
 import org.spongepowered.api.data.Property;
-import org.spongepowered.api.item.inventory.property.AbstractInventoryProperty;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.util.Coerce;
 
 /**
- * The Title of an Inventory, viewable by players looking at the Inventory
+ * The Title of an Inventory, viewable by players looking at the Inventory.
  */
-// TODO-feature/custominventory allow changing the Title of an existing Inventory/Container?
-// Vanilla Craftingtable and Anvil do not support custom title
 public class TitleProperty extends AbstractInventoryProperty<String, Text> {
 
     public TitleProperty(Text value) {

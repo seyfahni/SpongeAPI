@@ -73,9 +73,6 @@ public class AcceptsItems extends AbstractInventoryProperty<String, Collection<I
         super(Coerce.toListOf(value, ItemType.class), operator);
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
     @Override
     public int compareTo(Property<?, ?> other) {
         // This breaks the contract of Comparable, but we don't have a meaningful
