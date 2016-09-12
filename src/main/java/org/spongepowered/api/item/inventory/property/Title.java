@@ -31,9 +31,9 @@ import org.spongepowered.api.util.Coerce;
 /**
  * The Title of an Inventory, viewable by players looking at the Inventory.
  */
-public class TitleProperty extends AbstractInventoryProperty<String, Text> {
+public class Title extends AbstractInventoryProperty<String, Text> {
 
-    public TitleProperty(Text value) {
+    public Title(Text value) {
         super(value);
     }
 
@@ -45,8 +45,8 @@ public class TitleProperty extends AbstractInventoryProperty<String, Text> {
         return this.getValue().toString().compareTo(Coerce.toString(other.getValue()));
     }
 
-    public static TitleProperty of(Text value) {
-        return new TitleProperty(value);
+    public static Title of(Text value) {
+        return new Title(value);
     }
 
 }

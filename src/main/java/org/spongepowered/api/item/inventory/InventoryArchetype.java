@@ -26,7 +26,7 @@ package org.spongepowered.api.item.inventory;
 
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.item.inventory.property.TitleProperty;
+import org.spongepowered.api.item.inventory.property.Title;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.translation.Translation;
 import org.spongepowered.api.util.ResettableBuilder;
@@ -99,7 +99,7 @@ public interface InventoryArchetype extends CatalogType {
     interface Builder extends ResettableBuilder<InventoryArchetype, Builder> {
 
         /**
-         * Adds a {@link TitleProperty} to this Archetype
+         * Adds a {@link Title} to this Archetype
          *
          * @param title The default title
          * @return Fluent pattern
@@ -109,14 +109,14 @@ public interface InventoryArchetype extends CatalogType {
         }
 
         /**
-         * Adds a {@link TitleProperty} to this Archetype
+         * Adds a {@link Title} to this Archetype
          *
          * @param title The default title
          * @return Fluent patternI
          */
         // TODO Decide if Translation should be forced / Colors seem to be possible using the old colorcodes
         default Builder title(Text title) {
-            property(new TitleProperty(title));
+            property(new Title(title));
             return this;
         }
 
